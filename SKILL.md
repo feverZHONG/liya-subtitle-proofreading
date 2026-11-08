@@ -1,7 +1,7 @@
 ---
 name: subtitle-proofreading
 tier: T2  # T分级: T2=直接做 / T1=先请示 / T0=一律拒
-description: 字幕收档/校对/重建/外挂SRT/拿字幕挖条目——B站AI字幕拉取(subtitle CLI fetch)、无基准校对、SRT对照原稿逐字对齐、md转srt、多人语音ASR导出件校对。触发：收字幕、校对字幕、srt修正、字幕转srt、字幕对照原文、块太碎要合并、语音识别稿、直播回放只看字幕。
+description: 字幕收档/校对/重建/外挂SRT/挖条目。触发：收字幕、校对字幕、srt修正、模板合并、语音识别稿、直播转录稿校对。
 ---
 
 # 字幕校对/重建 · Subtitle Proofreading
@@ -24,6 +24,7 @@ description: 字幕收档/校对/重建/外挂SRT/拿字幕挖条目——B站AI
 | 只有 AI 字幕、无原稿（B站口播/解说） | 无基准校对 → `references/no-baseline-proofreading.md` |
 | 要按原稿重做字幕（块太碎／断章） | 重建模式 → `references/srt-workflow-and-rebuild.md` §重建模式 |
 | 多人语音 ASR 导出稿（发言人N＋时间戳） | **先量化再决定修不修** → `references/multi-speaker-asr.md` |
+| 直播回放/长录音的**长篇 ASR 全文**（要出可引用稿，不出字幕） | 长稿校对 → `references/livestream-transcript-proofreading.md`（固定词表 ＋ 五条口径 ＋ 三档改动清单） |
 | 要出外挂 SRT | `subtitle to-srt`（见下方 CLI 段） |
 | 要把字幕当**资料**挖条目（不是出成品字幕） | 照抄不纠错 → 见下方「拿字幕当资料挖条目」 |
 
@@ -62,6 +63,7 @@ subtitle to-srt <md> [--video <视频目录>] [--dur 秒]
 ```
 
 - fetch 前置（**只有作者环境有这一层**）：cookie 由本地凭据工具提供；Playwright 浏览器目录走 `PW_DIR`（默认 `<TMPDIR>/pw`，存在可用版本时自动接管 `PLAYWRIGHT_BROWSERS_PATH`）。**本仓自带的 proofread／to-srt／ASR 解析三段是纯本地纯标准库，不需要 cookie。**
+- **「校验词命中率」不是「错配字幕」的判据——真轨也会被判成假数据。** fetch 会拿标题词去字幕里找，命中 0 就打「疑似错配字幕」；而 **ASR 恰恰在标题词上错得最狠**（实测同一片：心愿单→「清愿单」、吧唧→「8G」、大 fufu→「大夫夫／大富翁」、出血线→「采血线」）。**真判据是「条数 × 末条时长 vs 视频时长」对账**（实测 437 条/870s 对 872s ✓）。命中率报 0 时**先读开头几行看语义对不对题**（是不是在讲这期视频的事），对得上就收下，别丢。校验词表尽量用**语义词**而不是标题字面。
 - fixes.json 生成法：先 diff 原文/校对版拿真实改动对，能自动复现的就是安全表（2026-09-09 回归：手工 20 处 → CLI 5/5 逐字一致）
 - **list 级校验的盲区**：替换行重建时丢行尾 `\n` → `writelines` 写盘相邻行粘连，list 元素数/时间戳数都不变、校验假绿。校验必须内容级：`''.join(new_lines).splitlines()` 后数行 + 比时间轴；替换时保留 `line.endswith('\n')`
 
