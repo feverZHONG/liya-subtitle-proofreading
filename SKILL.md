@@ -14,6 +14,7 @@ description: 字幕收档/校对/重建/外挂SRT/挖条目。触发：收字幕
 
 - 手上有一个 .srt 字幕 + 一份原文/成稿，要「校对字幕」「修正错字」「看看字幕对不对」
 - 从视频提取的 AI 字幕要变成可用成品
+- 手上只有音频/视频、没有字幕 → 先用 `bin/ds-asr <文件>` 转写（自动切段；输出可直接喂本技能做无基准校对）
 - 无原稿基准的纯 AI 字幕「顺手收录+校对」→ 走下方**无基准校对模式**（2026-09-09 合金弹头教学 5P 实战）
 
 ## 四种模式怎么选
@@ -27,6 +28,7 @@ description: 字幕收档/校对/重建/外挂SRT/挖条目。触发：收字幕
 | 直播回放/长录音的**长篇 ASR 全文**（要出可引用稿，不出字幕） | 长稿校对 → `references/livestream-transcript-proofreading.md`（固定词表 ＋ 五条口径 ＋ 三档改动清单） |
 | 要出外挂 SRT | `subtitle to-srt`（见下方 CLI 段） |
 | 要把字幕当**资料**挖条目（不是出成品字幕） | 照抄不纠错 → 见下方「拿字幕当资料挖条目」 |
+| 歌词文件（krc/lrc/纯文本），或要把「无文本时间表」与自备歌词对齐 | → `references/lyrics-formats.md`（krc 解密/取词/hash 反推缺行） |
 
 > 通用坑（双坐标系／插值／硬切／碎尾）见 `references/pitfalls.md`。
 
@@ -86,7 +88,7 @@ subtitle to-srt <md> [--video <视频目录>] [--dur 秒]
 - `scripts/proofread_diff.py <srt> <txt>` — 解析 SRT + 完整性检查 + 规范化全文 diff + 匹配度 + 差异块输出（第一步就用它，别现场重写解析）
 - `scripts/rebuild_srt.py <srt> <txt> [out] [--max-len 22]` — 重建模式 v10（2026-08-13 三轮定版）：以原文行为基础分块 + 章节标题独立 + 块长 8-26（平均 ~14）+ 时间轴插值 + 自动验证匹配度。⚠️ 跑前确认**输入是原始 SRT**（别用上次输出的校对版，会读到中间产物）；跑完抽查开头/章节边界/结尾三处
 - `scripts/subtitle.py` — 无基准校对全链 CLI，用法见上方「无基准校对 CLI · subtitle」段
-- `scripts/asr_export_parse.py <导出.docx|txt> [-o 目录]` — 多人语音 ASR 导出件（`发言人N + 时间戳 + 文本`）解析为逐条 JSON + 原文 md；**按形态扫描时间戳（MM:SS 与 HH:MM:SS 混排）并打印三条自检**，另出 `<名>_原文.md` ／ `<名>.json`；判读格式异常先跑它，别现场写解析器（作者环境另有 `bin/asr` 壳，依赖本仓外的实现——本仓这份自包含）
+- `scripts/asr_export_parse.py <导出.docx|txt> [-o 目录]` — 多人语音 ASR 导出件（`发言人N + 时间戳 + 文本`）解析为逐条 JSON + 原文 md；**按形态扫描时间戳（MM:SS 与 HH:MM:SS 混排）并打印三条自检**，另出 `<名>_原文.md` ／ `<名>.json`；判读格式异常先跑它，别现场写解析器（作者环境另有 `bin/asr-docx` 壳，依赖本仓外的实现——本仓这份自包含）
 - `scripts/md_cues_to_srt.py <md> [--dur 秒] [--out-dir 目录]` — 时间轴 md → SRT（同秒多条合并为一块双行、输出名去 `_字幕原文/字幕校对版` 后缀；to-srt 子命令的底层）
 
 ## 拆分记录
